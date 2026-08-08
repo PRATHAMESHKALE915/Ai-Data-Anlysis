@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "vercel-build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --outfile=api/index.js --external:pg-native --external:better-sqlite3 --external:mysql2 --external:oracledb --external:tedious --external:pg-query-stream --external:react --external:react-dom --external:vite --external:tailwindcss --external:@tailwindcss/vite --external:@vitejs/plugin-react --external:lightningcss --external:lucide-react --external:recharts --external:motion --external:react-markdown --external:remark-gfm --external:html2canvas --external:jspdf --external:jspdf-autotable --external:drizzle-kit",
+    "vercel-build": "vite build && node scratch/build_server.js",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist",
