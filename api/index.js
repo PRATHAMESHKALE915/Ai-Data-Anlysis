@@ -1354,15 +1354,30 @@ ${JSON.stringify(sampleRows, null, 2)}`;
 }
 
 // src/lib/firebaseAdmin.ts
-import { initializeApp, getApps } from "firebase-admin/app";
+import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-var projectId = process.env.VITE_FIREBASE_PROJECT_ID || "ai-data-analysis-9805c";
-if (!getApps().length) {
-  initializeApp({
-    projectId
-  });
+var _app;
+function getAdminApp() {
+  if (_app) return _app;
+  if (getApps().length > 0) {
+    _app = getApps()[0];
+    return _app;
+  }
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || "ai-data-analysis-9805c";
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  if (privateKey && clientEmail) {
+    _app = initializeApp({ credential: cert({ projectId, privateKey, clientEmail }) });
+  } else {
+    _app = initializeApp({ projectId });
+  }
+  return _app;
 }
-var adminAuth = getAuth();
+var adminAuth = new Proxy({}, {
+  get(_target, prop) {
+    return getAuth(getAdminApp())[prop];
+  }
+});
 
 // src/middleware/auth.ts
 var requireAuth = async (req, res, next) => {
