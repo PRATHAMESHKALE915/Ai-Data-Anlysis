@@ -4,9 +4,11 @@ import * as schema from './schema';
 
 declare global {
   var _postgresPool: Pool | undefined;
+  var _drizzleDb: any | undefined;
 }
 
 export const createPool = () => {
+  if (!process.env.SQL_HOST) return null;
   if (!global._postgresPool) {
     global._postgresPool = new Pool({
       host: process.env.SQL_HOST,
@@ -24,5 +26,15 @@ export const createPool = () => {
   return global._postgresPool;
 };
 
-const pool = createPool();
-export const db = drizzle(pool, { schema });
+export const db: any = new Proxy({}, {
+  get(_target, prop) {
+    if (!global._drizzleDb) {
+      const pool = createPool();
+      if (!pool) {
+        throw new Error('Cloud SQL host not configured (SQL_HOST missing)');
+      }
+      global._drizzleDb = drizzle(pool, { schema });
+    }
+    return (global._drizzleDb as any)[prop];
+  }
+});
