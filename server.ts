@@ -192,6 +192,7 @@ function cleanUpOldGenerations() {
 }
 
 export const app = express();
+app.set("trust proxy", 1);
 const PORT = Number(process.env.PORT) || 3000;
 
 async function setupApp() {
@@ -210,6 +211,7 @@ async function setupApp() {
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { trustProxy: false },
     message: { error: "Too many requests from this IP, please try again later." },
   });
 
@@ -219,6 +221,7 @@ async function setupApp() {
     max: 15,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { trustProxy: false },
     message: { error: "AI analysis rate limit exceeded. Please wait a few minutes before running more queries." },
   });
 
