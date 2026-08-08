@@ -1686,10 +1686,28 @@ for f in files:
 }
 
 // Store the setup promise so Vercel can await it before handling requests
-const setupPromise = setupApp();
+let setupError: Error | null = null;
+const setupPromise = setupApp().catch((err) => {
+  console.error("[FATAL] setupApp() failed:", err);
+  setupError = err;
+});
 
 // For Vercel: export a handler that waits for setup to complete
 export default async function handler(req: any, res: any) {
-  await setupPromise;
-  return app(req, res);
+  try {
+    await setupPromise;
+    if (setupError) {
+      return res.status(500).json({
+        error: "Server initialization failed",
+        details: setupError.message,
+      });
+    }
+    return app(req, res);
+  } catch (err: any) {
+    console.error("[handler] Unhandled error:", err);
+    return res.status(500).json({
+      error: "Internal server error",
+      details: err.message,
+    });
+  }
 }
