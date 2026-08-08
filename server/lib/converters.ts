@@ -5,18 +5,14 @@ import JSZip from "jszip";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-
 async function parsePdf(fileBuffer: Buffer) {
-  let pdfModule: any;
+  let pdfParseFn: any;
   try {
-    pdfModule = require("pdf-parse");
+    const pdfModule = await import("pdf-parse");
+    pdfParseFn = pdfModule.default || pdfModule;
   } catch {
-    pdfModule = await import("pdf-parse");
+    pdfParseFn = null;
   }
-
-  let pdfParseFn = pdfModule;
 
   if (typeof pdfParseFn !== "function") {
     if (typeof pdfParseFn?.default === "function") {
