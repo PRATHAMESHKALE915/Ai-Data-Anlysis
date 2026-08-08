@@ -511,11 +511,13 @@ async function convertImageToTableFile(imageBuffer, mimeType, format, userInstru
 // server/lib/converters.ts
 async function parsePdf(fileBuffer) {
   let pdfParseFn;
+  let pdfModule;
   try {
-    const pdfModule2 = await import("pdf-parse");
-    pdfParseFn = pdfModule2.default || pdfModule2;
+    pdfModule = await import("pdf-parse");
+    pdfParseFn = pdfModule.default || pdfModule;
   } catch {
     pdfParseFn = null;
+    pdfModule = null;
   }
   if (typeof pdfParseFn !== "function") {
     if (typeof pdfParseFn?.default === "function") {
@@ -543,16 +545,9 @@ async function parsePdf(fileBuffer) {
           }
         }
         if (instance) {
-          if (typeof instance.parse === "function") {
-            return await instance.parse();
-          }
-          if (typeof instance.getText === "function") {
-            const text2 = await instance.getText();
-            return { text: text2 };
-          }
-          if (typeof instance.then === "function") {
-            return await instance;
-          }
+          if (typeof instance.parse === "function") return await instance.parse();
+          if (typeof instance.getText === "function") return { text: await instance.getText() };
+          if (typeof instance.then === "function") return await instance;
           return instance;
         }
       }

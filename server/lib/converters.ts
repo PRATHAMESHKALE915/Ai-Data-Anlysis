@@ -7,11 +7,13 @@ import autoTable from "jspdf-autotable";
 
 async function parsePdf(fileBuffer: Buffer) {
   let pdfParseFn: any;
+  let pdfModule: any;
   try {
-    const pdfModule = await import("pdf-parse");
+    pdfModule = await import("pdf-parse") as any;
     pdfParseFn = pdfModule.default || pdfModule;
   } catch {
     pdfParseFn = null;
+    pdfModule = null;
   }
 
   if (typeof pdfParseFn !== "function") {
@@ -34,7 +36,6 @@ async function parsePdf(fileBuffer: Buffer) {
         err?.message?.includes("Class constructors cannot be invoked without 'new'") ||
         err?.message?.includes("cannot be invoked without 'new'")
       ) {
-        // Try class instantiation with { data: uint8Data } or uint8Data
         let instance: any;
         try {
           instance = new pdfParseFn({ data: uint8Data });
@@ -47,21 +48,13 @@ async function parsePdf(fileBuffer: Buffer) {
         }
 
         if (instance) {
-          if (typeof instance.parse === "function") {
-            return await instance.parse();
-          }
-          if (typeof instance.getText === "function") {
-            const text = await instance.getText();
-            return { text };
-          }
-          if (typeof instance.then === "function") {
-            return await instance;
-          }
+          if (typeof instance.parse === "function") return await instance.parse();
+          if (typeof instance.getText === "function") return { text: await instance.getText() };
+          if (typeof instance.then === "function") return await instance;
           return instance;
         }
       }
 
-      // If Uint8Array failed, fallback to fileBuffer
       try {
         return await pdfParseFn(fileBuffer);
       } catch {
@@ -70,7 +63,6 @@ async function parsePdf(fileBuffer: Buffer) {
     }
   }
 
-  // Fallback if pdfModule is object with methods
   if (pdfModule && typeof pdfModule.parse === "function") {
     try {
       return await pdfModule.parse(uint8Data);
@@ -82,7 +74,7 @@ async function parsePdf(fileBuffer: Buffer) {
   throw new Error(`pdf-parse module format unsupported (keys: ${Object.keys(pdfModule || {}).join(", ")})`);
 }
 
-import { convertImageToTableFile } from "./imageTableExtractor.ts";
+import { convertImageToTableFile } from "./imageTableExtractor";
 
 function getImageMimeType(filename: string): string {
   const ext = filename.split(".").pop()?.toLowerCase();
