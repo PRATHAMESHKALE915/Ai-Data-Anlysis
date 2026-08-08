@@ -1,5 +1,5 @@
-import { db } from './index.ts';
-import { users, datasets, analysisReports, promptRoutines } from './schema.ts';
+import { db } from './index';
+import { users, datasets, analysisReports, promptRoutines } from './schema';
 import { eq, desc } from 'drizzle-orm';
 
 export async function getOrCreateUser(uid: string, email: string, name?: string) {

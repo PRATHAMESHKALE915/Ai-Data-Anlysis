@@ -12,16 +12,16 @@ import {
   createInteraction,
   streamInteraction,
   API_BASE_URL,
-} from "./server/lib/agentClient.ts";
-import { extractJsonBlocks } from "./server/lib/jsonExtractor.ts";
+} from "./server/lib/agentClient";
+import { extractJsonBlocks } from "./server/lib/jsonExtractor";
 import fs from "fs";
 import crypto from "crypto";
 import multer from "multer";
-import { convertFile } from "./server/lib/converters.ts";
-import { cleanDataWithAi } from "./server/lib/dataCleaner.ts";
-import { convertImageToTableFile, extractTableFromImage } from "./server/lib/imageTableExtractor.ts";
-import { detectRequestedFormat } from "./server/lib/generate-table-file.ts";
-import { requireAuth, AuthRequest } from "./src/middleware/auth.ts";
+import { convertFile } from "./server/lib/converters";
+import { cleanDataWithAi } from "./server/lib/dataCleaner";
+import { convertImageToTableFile, extractTableFromImage } from "./server/lib/imageTableExtractor";
+import { detectRequestedFormat } from "./server/lib/generate-table-file";
+import { requireAuth, AuthRequest } from "./src/middleware/auth";
 import {
   getOrCreateUser,
   saveDatasetRecord,
@@ -30,7 +30,7 @@ import {
   getUserReports,
   savePromptRoutineRecord,
   getUserRoutines,
-} from "./src/db/users.ts";
+} from "./src/db/users";
 
 async function getGcpAccessToken(): Promise<string | null> {
   try {

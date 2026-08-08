@@ -4,7 +4,7 @@ import {
   CleaningPlan,
   applyCleaningPlan,
   recomputeNumericStrategyValues,
-} from "./apply-cleaning-plan.ts";
+} from "./apply-cleaning-plan";
 
 export interface ColumnAnalysis {
   column: string;
