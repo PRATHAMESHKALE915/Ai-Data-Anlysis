@@ -1637,32 +1637,30 @@ for f in files:
     res.json({ status: "ok" });
   });
 
-  // Vite middleware for development (with a robust fallback to dev middleware if dist/index.html is missing)
-  const distPath = path.join(process.cwd(), "dist");
-  const indexHtmlExists = fs.existsSync(path.join(distPath, "index.html"));
-
-  if (process.env.NODE_ENV !== "production" || !indexHtmlExists) {
-    if (process.env.NODE_ENV === "production") {
-      console.warn(
-        "Production mode enabled, but dist/index.html not found. Falling back to Vite dev server middleware to ensure app stays operational.",
-      );
-    }
-    const { createServer: createViteServer } = await import("vite");
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    app.use(express.static(distPath));
-    // Express 5 format for catch-all (if using express 5) or Express 4. Let's use *all for v5 or * for v4.
-    // We can use default express 4 catch-all
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
-
+  // On Vercel, static files are served by @vercel/static-build — skip Vite/static middleware entirely
   if (!process.env.VERCEL) {
+    const distPath = path.join(process.cwd(), "dist");
+    const indexHtmlExists = fs.existsSync(path.join(distPath, "index.html"));
+
+    if (process.env.NODE_ENV !== "production" || !indexHtmlExists) {
+      if (process.env.NODE_ENV === "production") {
+        console.warn(
+          "Production mode enabled, but dist/index.html not found. Falling back to Vite dev server middleware.",
+        );
+      }
+      const { createServer: createViteServer } = await import("vite");
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+    } else {
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(path.join(distPath, "index.html"));
+      });
+    }
+
     const startListening = (port: number) => {
       const server = app
         .listen(port, "0.0.0.0", () => {
@@ -1677,7 +1675,6 @@ for f in files:
           }
         });
 
-      // Disable timeouts for long-running agent interactions
       server.setTimeout(0);
       server.requestTimeout = 0;
       server.headersTimeout = 0;
@@ -1688,6 +1685,11 @@ for f in files:
   }
 }
 
-setupApp();
+// Store the setup promise so Vercel can await it before handling requests
+const setupPromise = setupApp();
 
-export default app;
+// For Vercel: export a handler that waits for setup to complete
+export default async function handler(req: any, res: any) {
+  await setupPromise;
+  return app(req, res);
+}

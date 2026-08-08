@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "env": {
+    "VERCEL": "1"
+  },
   "builds": [
     {
       "src": "server.ts",
@@ -23,12 +26,7 @@
       "dest": "server.ts"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*\\.(png|jpg|jpeg|gif|svg|ico|css|js|json|wasm))",
-      "dest": "/$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
