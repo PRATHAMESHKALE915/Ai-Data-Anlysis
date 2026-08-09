@@ -2,11 +2,17 @@ import { execFileSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 
-// Resolve binary safely
+// Resolve binary safely without invoking a shell on Vercel.
 let esbuildExe = 'esbuild';
-const localBin = path.resolve('node_modules/@esbuild/win32-x64/esbuild.exe');
-if (fs.existsSync(localBin)) {
-  esbuildExe = localBin;
+const localBins = [
+  path.resolve('node_modules/.bin/esbuild'),
+  path.resolve('node_modules/@esbuild/win32-x64/esbuild.exe'),
+];
+for (const localBin of localBins) {
+  if (fs.existsSync(localBin)) {
+    esbuildExe = localBin;
+    break;
+  }
 }
 
 const args = [
@@ -42,7 +48,7 @@ const args = [
 
 try {
   console.log("Compiling server with arguments using execFileSync...");
-  execFileSync(esbuildExe, args, { stdio: 'inherit', shell: esbuildExe === 'esbuild' });
+  execFileSync(esbuildExe, args, { stdio: 'inherit', shell: false });
   console.log("ESBuild build completed successfully!");
 } catch (err) {
   console.error("Build failed:", err);
